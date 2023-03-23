@@ -38,12 +38,12 @@ class ModelParameters:
             frequency: frequency of timesteps save for results
     """
     
-    def __init__(self, name="none", L=50000, H=16, D=20, z0=76, offshore_proportion=1, 
-                sea_level=0, dx=50, dz=0.1, x_b=1900, K_aquifer=3, K_aquitard=0.01, anis_aquifer=100, anis_aquitard=100, 
+    def __init__(self, name="none", L=10000, H=31, D=10, z0=44, offshore_proportion=1, 
+                sea_level=0, dx=10, dz=0.1, x_b=3500, K_aquifer=10, K_aquitard=0.01, anis_aquifer=100, anis_aquitard=100, 
                 sy_aquifer=0.24, sy_aquitard=0.24, ss_aquifer=1e-5, ss_aquitard=1e-5,
-                n_aquifer=0.3, n_aquitard=0.3, alpha_L=100, alpha_anisT=0.1, alpha_anisV=0.01, 
+                n_aquifer=0.3, n_aquitard=0.3, alpha_L=5, alpha_anisT=0.1, alpha_anisV=0.01, 
                 diff=8.64e-5, dt=1e3, T=1e3, T_init=0, v_slr=120/(20000*365), h_b=8.5, rho_f=1000, rho_s=1025, 
-                exe_file=r".\exe_path.txt", frequency=1, porosity=0.3, steady=False):
+                exe_file=r"./exe_path.txt", frequency=1, porosity=0.3, steady=False, T_modern=365*200, h_modern=-1, flux_modern=None, dt_modern=1000):
 
 
         self.name=name
@@ -84,9 +84,17 @@ class ModelParameters:
         with open(exe_file, 'r') as f: self.exe_path=f.readline()
         self.frequency=frequency
         self.nrow=1
-        self.ncol = int(self.Lx/self.dx)
-        self.nlay = int(self.Lz/self.dz)
+        self.ncol = int(np.floor(self.Lx/self.dx))
+        self.nlay = int(np.floor(self.Lz/self.dz))
         self.steady = steady
+        self.T_modern = T_modern
+        self.h_modern = h_modern
+        self.flux_modern = flux_modern
+        self.aquifer_cells = None
+        self.aquitard_cells = None
+        self.top_cells = None
+        self.bottom_cells = None
+        self.dt_modern = dt_modern
 
         self.save_parameters()
 
@@ -100,18 +108,19 @@ class ModelParameters:
         """
             Save object
         """
-        model_ws = f".\\model_files\\{self.name}"
+        model_ws = f"./model_files/{self.name}"
         if not os.path.exists(model_ws):
             os.makedirs(model_ws)
 
-        f = open(f"{model_ws}\\pars", 'wb')
+        f = open(f"{model_ws}/pars", 'wb')
         pickle.dump(self, f)
         f.close()
 
 def load_parameters(name):
 
-    model_ws = f".\\model_files\\{name}"
-    f = open(f"{model_ws}\\pars", 'rb')
+    model_ws = f"./model_files/{name}"
+    f = open(f"{model_ws}/pars", 'rb')
     temp = pickle.load(f)
     f.close()          
     return temp
+
