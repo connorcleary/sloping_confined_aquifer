@@ -123,17 +123,21 @@ def plot_set(inputs):
         = plot_metrics("a0", times, axs[2][mid], axs[3][mid], axs[4][mid], axs[5][mid], d[f"axs3_{mid}twin"], d[f"axs5_{mid}twin"],d[f"axs5_{mid}twin"])
 
     i = 0
+    y_labels= "left"
     for r in set:
         if i >= mid-1:
            i=i+1
         conc, _, qx, qz, times = get_results(r)
         # mf6r.metrics(r, conc, qz)
-        axs[0][i], axs[1][i] = plot_results(r, conc, qx, qz, times, axs[0][i], axs[1][i])
+        axs[0][i], axs[1][i] = plot_results(r, conc, qx, qz, times, axs[0][i], axs[1][i], y_labels=y_labels)
         axs[2][i], axs[3][i], axs[4][i], axs[5][i], d[f"axs3_{i}twin"], d[f"axs5_{i}twin"],d[f"axs5_{i}twin"]  \
-            = plot_metrics(r, times, axs[2][i], axs[3][i], axs[4][i], axs[5][i], d[f"axs3_{i}twin"], d[f"axs5_{i}twin"],d[f"axs5_{i}twin"])
+            = plot_metrics(r, times, axs[2][i], axs[3][i], axs[4][i], axs[5][i], d[f"axs3_{i}twin"], d[f"axs5_{i}twin"],d[f"axs5_{i}twin"], y_labels=y_labels)
         i=i+1
+        if i < len(set)-2:
+            y_labels="none"
+        else:
+            y_labels="right"
      
-        , ,  = base
 
     if not os.path.exists(f"/home/ccleary/shared/results/initial_cases"):
         os.makedirs(f"/home/ccleary/shared/results/initial_cases")
