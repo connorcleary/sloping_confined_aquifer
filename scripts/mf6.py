@@ -5,6 +5,7 @@ import pickle
 import flopy.utils.binaryfile as bf
 from pars import ModelParameters, load_parameters
 import matplotlib.pyplot as plt
+import pdb
 
 def build_steady_model(pars):
 
@@ -334,7 +335,7 @@ def build_steady_model(pars):
 
 def run_model(swt):
     swt.write_simulation()
-    success, buff = swt.run_simulation(silent=True)
+    success, buff = swt.run_simulation(silent=False)
     if not success:
             print(buff)
 

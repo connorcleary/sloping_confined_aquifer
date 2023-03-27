@@ -13,8 +13,8 @@ from mf6 import get_results
 
 def metrics(name, conc, qz):
 
-    if not os.path.exists(f"results/{name}"):
-        os.makedirs(f"results/{name}")
+    if not os.path.exists(f"/home/ccleary/shared/results/{name}"):
+        os.makedirs(f"/home/ccleary/shared/results/{name}")
     pars = load_parameters(name)
     fresh_list = proc.fresh_volume(conc, pars)
     toe_list, tip_list = proc.interface(conc, pars)
@@ -25,11 +25,14 @@ def metrics(name, conc, qz):
             "fresh_flux_list": fresh_flux_list, "fresh_centroid_list": fresh_centroid_list,
             "sal_flux_list": sal_flux_list, "sal_centroid_list": sal_centroid_list}
     df = pd.DataFrame(dict)
-    df.to_csv(f"results/{name}/metrics.csv")
+    df.to_csv(f"/home/ccleary/shared/results/{name}/metrics.csv")
 
-def plot_metrics(name, times):
+def plot_metrics(name, times, plot=True):
+    if not os.path.exists(f"/home/ccleary/shared/results/{name}"):
+        os.makedirs(f"/home/ccleary/shared/results/{name}")
+
     pars = load_parameters(name)
-    df = pd.read_csv(f"results/{name}/metrics.csv")
+    df = pd.read_csv(f"/home/ccleary/shared/results/{name}/metrics.csv")
     f, axs = plt.subplots(4, 1, figsize=(9,9), sharex=True)
     
     # plot fresh
@@ -59,9 +62,16 @@ def plot_metrics(name, times):
     axs3twin.plot(times[0::5], df.fresh_centroid_list, linestyle="--")
     axs3twin.plot(times[0::5], df.sal_centroid_list, linestyle="--")
     axs3twin.legend(["fresh centroid", "saline centroid"])
-    plt.savefig(f"results/{name}/metrics", dpi=300)
+    if plot:
+        plt.savefig(f"/home/ccleary/shared/results/{name}/metrics", dpi=300)
+    else:
+        return axs[0], axs[1], axs[2], axs[3], axs1twin, axs2twin, axs3twin
 
-def plot_results(name, conc, qx, qz, times):
+
+def plot_results(name, conc, qx, qz, times, plot=True):
+    if not os.path.exists(f"/home/ccleary/shared/results/{name}"):
+        os.makedirs(f"/home/ccleary/shared/results/{name}")
+    
     pars = load_parameters(name)
     f,axs = plt.subplots(2,1, figsize=(6,6))
 
@@ -115,10 +125,17 @@ def plot_results(name, conc, qx, qz, times):
     axs[0].set_ylabel("Distance above present sea level (m)")
     axs[1].set_xlabel("Distance offshore (km)")
 
-    plt.savefig(f"results/{name}/concentrations", dpi=300)
+    if plot:
+        plt.savefig(f"/home/ccleary/shared/results/{name}/concentrations", dpi=300)
+    else:
+        return axs[0], axs[1]
+
 
 def all_results(name):
     conc, _, qx, qz, times = get_results(name)
     metrics(name, conc, qz)
     plot_metrics(name, times)
     plot_results(name, conc, qx, qz, times)
+
+
+

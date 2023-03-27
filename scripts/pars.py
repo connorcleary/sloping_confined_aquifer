@@ -81,7 +81,7 @@ class ModelParameters:
         self.beta = np.arctan((self.z0-self.D-self.H)/self.L)
         self.Lx= self.L+self.x_b
         self.Lz = self.z0+self.x_b*np.tan(self.beta)
-        with open(exe_file, 'r') as f: self.exe_path=f.readline()
+        self.exe_path = "/home/ccleary/sloping_confined_aquifer/mf6"
         self.frequency=frequency
         self.nrow=1
         self.ncol = int(np.floor(self.Lx/self.dx))
