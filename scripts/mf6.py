@@ -117,8 +117,15 @@ def build_steady_model(pars):
         bottom_cells.append([lay, 0, col])
 
     hk = np.zeros((pars.nlay, pars.nrow, pars.ncol))
-    for cell in aquifer_cells: hk[cell[0], cell[1], cell[2]] = pars.K_aquifer
-    for cell in aquitard_cells: hk[cell[0], cell[1], cell[2]] = pars.K_aquitard
+    k33 = np.zeros_like(hk)
+
+    for cell in aquifer_cells: 
+        hk[cell[0], cell[1], cell[2]] = pars.K_aquifer
+        k33[cell[0], cell[1], cell[2]] = pars.anis_aquifer
+
+    for cell in aquitard_cells: 
+        hk[cell[0], cell[1], cell[2]] = pars.K_aquitard
+        k33[cell[0], cell[1], cell[2]] = pars.anis_aquitard
 
 
     flopy.mf6.ModflowGwfnpf(
@@ -126,7 +133,7 @@ def build_steady_model(pars):
         save_specific_discharge=True,
         icelltype=1,
         k=hk,
-        k33=0.01,
+        k33=k33,
     )
     strt = np.zeros((pars.nlay, pars.nrow, pars.ncol))
     strt[:, :, -1] = 35.7
