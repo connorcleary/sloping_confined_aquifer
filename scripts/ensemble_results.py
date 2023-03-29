@@ -65,9 +65,9 @@ def plot_results(name, conc, qx, qz, times, axs0, axs1, y_labels="none", legends
     # plot arrows
     qx_predev = qx_predev / np.sqrt(qx_predev**2+qz_predev**2)
     qz_predev = qz_predev / np.sqrt(qx_predev**2+qz_predev**2)
-    axs0.quiver(x[::40], y[::5], qx_predev[::5, ::40],-1*qz_predev[::5, ::40], 
+    axs0.quiver(x[::80], y[::50], qx_predev[::50, ::80],-1*qz_predev[::50, ::80], 
                      color="white", width=0.002)
-    axs0.set_aspect(100)
+    axs0.set_aspect(50)
     #ax.axhline(pars.sea_levels[num*2], c='k', alpha=0.5, zorder = 3, linestyle=':', label=r"sea_level", linewidth=3)
 
     conc_post = np.flipud(conc[-1][:, 0, :])
@@ -86,15 +86,14 @@ def plot_results(name, conc, qx, qz, times, axs0, axs1, y_labels="none", legends
     # plot arrows
     qx_post = qx_post / np.sqrt(qx_post**2+qz_post**2)
     qz_post = qz_post / np.sqrt(qx_post**2+qz_post**2)
-    axs1.quiver(x[::40], y[::5], qx_post[::5, ::40],-1*qz_post[::5, ::40], 
+    axs1.quiver(x[::80], y[::50], qx_post[::50, ::80],-1*qz_post[::50, ::80], 
                      color="white", width=0.002)
-    axs1.set_aspect(100)
+    axs1.set_aspect(50)
     #ax.axhline(pars.sea_level
 
-    if y_labels=="right":
+    if y_labels=="left":
         axs0.set_ylabel("Distance above present sea level (m)")
-        axs1.set_ylabel("Distance above present sea level (m)")
-
+        
     axs1.set_xlabel("Distance offshore (m)")
 
     return axs0, axs1
@@ -102,8 +101,8 @@ def plot_results(name, conc, qx, qz, times, axs0, axs1, y_labels="none", legends
 def plot_set(inputs):
     
     set, set_name=inputs
-    f, axs = plt.subplots(6, len(set)+1, sharex=True)
-    mid =  int(np.ceil(0.5*(1+len(set))))
+    f, axs = plt.subplots(6, len(set)+1, sharey="row", figsize=(20,10))
+    mid =  int(np.ceil(0.5*(1+len(set))))-1
 
     f.suptitle(set_name)
     
@@ -113,6 +112,10 @@ def plot_set(inputs):
         d[f"axs3_{i}twin"] = axs[3][i].twinx()
         d[f"axs4_{i}twin"] = axs[4][i].twinx()
         d[f"axs5_{i}twin"] = axs[5][i].twinx()
+    
+    for i in range(len(set)):
+        d["axs3_0twin"].get_shared_y_axes().join(d["axs3_0twin"], d[f"axs3_{i+1}twin"])
+
 
     conc, _, qx, qz, times = get_results("a0")
     axs[0][mid], axs[1][mid] = plot_results("a0", conc, qx, qz, times, axs[0][mid], axs[1][mid])
@@ -122,7 +125,7 @@ def plot_set(inputs):
     i = 0
     y_labels= "left"
     for r in set:
-        if i >= mid-1:
+        if i >= mid:
            i=i+1
         conc, _, qx, qz, times = get_results(r)
         # mf6r.metrics(r, conc, qz)
@@ -134,7 +137,8 @@ def plot_set(inputs):
             y_labels="none"
         else:
             y_labels="right"
-     
+    
+    f.tight_layout()
 
     if not os.path.exists(f"/home/ccleary/shared/results/initial_cases"):
         os.makedirs(f"/home/ccleary/shared/results/initial_cases")
@@ -149,10 +153,10 @@ def plot_ensemble(sets, set_names, name):
     conc0p, conc0m = mf6r.plot_results("a0", conc, qx, qz, times, plot=False)
     fresh0, toe0, mix0, sgd0, toe0twin, mix0twin, sgd0twin = mf6r.plot_metrics("a0", times, plot=False)
     base = [conc0p, conc0m, fresh0, toe0, mix0, sgd0, toe0twin, mix0twin, sgd0twin]
-    plot_set([sets[0], set_names[0]])
-    # inputs = [[s, n] for s, n in zip(sets, set_names)]
-    # p = Pool(processes=16)
-    # p.map(plot_set, inputs)
+    # plot_set([sets[0], set_names[0]])
+    inputs = [[s, n] for s, n in zip(sets, set_names)]
+    p = Pool(processes=16)
+    p.map(plot_set, inputs)
 
 
 def main():
