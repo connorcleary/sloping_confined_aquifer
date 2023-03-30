@@ -138,4 +138,6 @@ def all_results(name):
     plot_results(name, conc, qx, qz, times)
 
 
-
+if __name__=="__main__":
+    name = input("name:")
+    all_results(name)
