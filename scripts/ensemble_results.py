@@ -55,7 +55,7 @@ def plot_results(name, conc, qx, qz, times, axs0, axs1, y_labels="none", legends
 
     for i in range(pars.nlay):
         for j in range(pars.ncol):
-            if conc_predev[i, j] == np.float32(1.e30):
+            if conc_predev[i, j] == np.float64(-1.e30):
                 conc_predev[i,j] = np.nan
 
     conccm = axs0.pcolormesh(x, y, conc_predev, 
@@ -76,7 +76,7 @@ def plot_results(name, conc, qx, qz, times, axs0, axs1, y_labels="none", legends
 
     for i in range(pars.nlay):
         for j in range(pars.ncol):
-            if conc_post[i, j] == np.float32(1.e30):
+            if conc_post[i, j] == np.float64(-1.e30):
                 conc_post[i,j] = np.nan
 
     conccm = axs1.pcolormesh(x, y, conc_post, 
