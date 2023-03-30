@@ -172,6 +172,7 @@ def build_steady_model(pars):
         times += [times[-1]+perlen[i]]
 
     ghb_data = {}
+    chd_data= {}
     ghbcond_v = pars.K_aquitard/pars.anis_aquitard * delr * delc / (delv)
     ghbcond_ha = pars.K_aquifer * delv * delc / (delr)
     ghbcond_hb = pars.K_aquitard * delv * delc / (delr)
@@ -179,6 +180,7 @@ def build_steady_model(pars):
     for i in range(nper-bool(pars.T_init)-2):
         sea_cells = []
         ghb_temp = []
+        chd_temp = []
         last_cell = [-1, -1, -1]
 
         for cell in offshore_boundary_cells:
@@ -209,12 +211,14 @@ def build_steady_model(pars):
                 ghbcond=ghbcond_hb
             else:
                 ghbcond=ghbcond_ha
-            ghb_temp.append([(cell[0], cell[1], cell[2]), pars.Lz-pars.z0, ghbcond, 0.0])
-
+            # ghb_temp.append([(cell[0], cell[1], cell[2]), pars.Lz-pars.z0, ghbcond, 0.0])
+            chd_temp.append([(cell[0], cell[1], cell[2]), pars.Lz-pars.z0, 0.0])
         ghb_data[i] = ghb_temp
+        chd_data[i] = chd_temp
 
     if pars.T_modern != 0:
         ghb_temp = []
+        chd_temp = []
         i+=1 
         last_cell = [-1, -1, -1]
         sea_levels += int(pars.T_modern/pars.dt)*[sea_levels[-1]]
@@ -247,8 +251,10 @@ def build_steady_model(pars):
                     ghbcond=ghbcond_hb
                 else:
                     ghbcond=ghbcond_ha
-                ghb_temp.append([(cell[0], cell[1], cell[2]), pars.h_modern, ghbcond, 0.0])
+                # ghb_temp.append([(cell[0], cell[1], cell[2]), pars.h_modern, ghbcond, 0.0])
+                chd_temp.append([(cell[0], cell[1], cell[2]), pars.h_modern, 0.0])
 
+        chd_data[i] = chd_temp
         ghb_data[i] = ghb_temp
 
 
@@ -256,6 +262,13 @@ def build_steady_model(pars):
         gwf,
         stress_period_data=ghb_data,
         pname="GHB-1",
+        auxiliary="CONCENTRATION",
+    )
+
+    flopy.mf6.ModflowGwfchd(
+        gwf,
+        stress_period_data=chd_data,
+        pname="CHD-1",
         auxiliary="CONCENTRATION",
     )
 
@@ -311,6 +324,7 @@ def build_steady_model(pars):
 
     sourcerecarray = [
         ("GHB-1", "AUX", "CONCENTRATION"),
+        ("CHD-1", "AUX", "CONCENTRATION")
     ]
 
     flopy.mf6.ModflowGwtssm(gwt, sources=sourcerecarray)
