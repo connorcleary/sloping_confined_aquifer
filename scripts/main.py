@@ -32,7 +32,7 @@ def create_run_plot_model(name, **kwargs):
     #results.plot_last_step(name+"_modern")
      
 def main():
-    create_run_plot_model("b0", L=10000, T=1000, dt=1000, z0=44, x_b=3500, h_b=1.9, dx=10, dz=1, h_modern=-5, H=36, D=5, T_modern=365*200, K_aquifer=3, dt_modern=365*200, alpha_L=5)
+    create_run_plot_model("b2", L=10000, T=1000, dt=1000, z0=44, x_b=3500, h_b=1.9, dx=10, dz=1, h_modern=-2, H=36, D=5, T_modern=365*200, K_aquifer=3, dt_modern=365*200, alpha_L=5)
     # create_run_plot_model("canterbury_mid_test_fixed_head_tsmult", L=10000, T=1000, dt=1000, z0=44, x_b=3500, h_b=1.9, dx=10, dz=1, h_modern=-1, H=36, D=5, T_modern=365*200, K_aquifer=3, dt_modern=365*200)
     #create_run_plot_model("canterbury_full_dx_100_alpha_1_hb_0", dz=1, L=50000, z0=76,x_b = 1900, h_b=0, dx=100, dt=1e3, T=1e3, alpha_L=1)
     #create_run_plot_model("fine_diff", dx=200, dz=1, L=50000, diff=8.64e-6)

@@ -121,11 +121,11 @@ def build_steady_model(pars):
 
     for cell in aquifer_cells: 
         hk[cell[0], cell[1], cell[2]] = pars.K_aquifer
-        k33[cell[0], cell[1], cell[2]] = pars.anis_aquifer
+        k33[cell[0], cell[1], cell[2]] = pars.K_aquifer/pars.anis_aquifer
 
     for cell in aquitard_cells: 
         hk[cell[0], cell[1], cell[2]] = pars.K_aquitard
-        k33[cell[0], cell[1], cell[2]] = pars.anis_aquitard
+        k33[cell[0], cell[1], cell[2]] = pars.K_aquitard/pars.anis_aquitard
 
 
     flopy.mf6.ModflowGwfnpf(
@@ -172,9 +172,9 @@ def build_steady_model(pars):
         times += [times[-1]+perlen[i]]
 
     ghb_data = {}
-    ghbcond_v = pars.K_aquitard/pars.anis_aquitard * delr * delc / (0.5 * delv)
-    ghbcond_ha = pars.K_aquifer * delv * delc / (0.5 * delr)
-    ghbcond_hb = pars.K_aquitard * delv * delc / (0.5 * delr)
+    ghbcond_v = pars.K_aquitard/pars.anis_aquitard * delr * delc / (delv)
+    ghbcond_ha = pars.K_aquifer * delv * delc / (delr)
+    ghbcond_hb = pars.K_aquitard * delv * delc / (delr)
 
     for i in range(nper-bool(pars.T_init)-2):
         sea_cells = []
