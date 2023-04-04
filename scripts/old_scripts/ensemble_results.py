@@ -117,10 +117,11 @@ def plot_set(inputs):
         d["axs3_0twin"].get_shared_y_axes().join(d["axs3_0twin"], d[f"axs3_{i+1}twin"])
 
 
-    conc, _, qx, qz, times = get_results("a0")
-    axs[0][mid], axs[1][mid] = plot_results("a0", conc, qx, qz, times, axs[0][mid], axs[1][mid])
+    conc, _, qx, qz, times = get_results("c0")
+    mf6r.metrics("c0", conc, qz)
+    axs[0][mid], axs[1][mid] = plot_results("c0", conc, qx, qz, times, axs[0][mid], axs[1][mid])
     axs[2][mid], axs[3][mid], axs[4][mid], axs[5][mid], d[f"axs3_{mid}twin"], d[f"axs5_{mid}twin"],d[f"axs5_{mid}twin"] \
-        = plot_metrics("a0", times, axs[2][mid], axs[3][mid], axs[4][mid], axs[5][mid], d[f"axs3_{mid}twin"], d[f"axs4_{mid}twin"],d[f"axs5_{mid}twin"])
+        = plot_metrics("c0", times, axs[2][mid], axs[3][mid], axs[4][mid], axs[5][mid], d[f"axs3_{mid}twin"], d[f"axs4_{mid}twin"],d[f"axs5_{mid}twin"])
 
     i = 0
     y_labels= "left"
@@ -128,7 +129,7 @@ def plot_set(inputs):
         if i >= mid:
            i=i+1
         conc, _, qx, qz, times = get_results(r)
-        # mf6r.metrics(r, conc, qz)
+        mf6r.metrics(r, conc, qz)
         axs[0][i], axs[1][i] = plot_results(r, conc, qx, qz, times, axs[0][i], axs[1][i], y_labels=y_labels)
         axs[2][i], axs[3][i], axs[4][i], axs[5][i], d[f"axs3_{i}twin"], d[f"axs4_{i}twin"],d[f"axs5_{i}twin"]  \
             = plot_metrics(r, times, axs[2][i], axs[3][i], axs[4][i], axs[5][i], d[f"axs3_{i}twin"], d[f"axs4_{i}twin"],d[f"axs5_{i}twin"], y_labels=y_labels)
@@ -148,11 +149,6 @@ def plot_set(inputs):
 def plot_ensemble(sets, set_names, name):
 
     # get everything for base case
-    conc, _, qx, qz, times = get_results("a0")
-    mf6r.metrics("a0", conc, qz)
-    conc0p, conc0m = mf6r.plot_results("a0", conc, qx, qz, times, plot=False)
-    fresh0, toe0, mix0, sgd0, toe0twin, mix0twin, sgd0twin = mf6r.plot_metrics("a0", times, plot=False)
-    base = [conc0p, conc0m, fresh0, toe0, mix0, sgd0, toe0twin, mix0twin, sgd0twin]
     # plot_set([sets[0], set_names[0]])
     inputs = [[s, n] for s, n in zip(sets, set_names)]
     p = Pool(processes=16)
@@ -160,10 +156,10 @@ def plot_ensemble(sets, set_names, name):
 
 
 def main():
-    sets = [[f"a{i}", f"a{i+1}"] for i in range(1, 13, 2)]
+    sets = [[f"c{i}", f"c{i+1}"] for i in range(1, 13, 2)]
     print(sets)
     set_names = ["K_aquifer", "K_aquitard", "anis_aquifer", "anis_aquitard", "h_modern", "aquitard_D"]
-    plot_ensemble(sets, set_names, "inital_cases")
+    plot_ensemble(sets, set_names, "set_c_model_tweaks")
 
 if __name__=="__main__":
         main()

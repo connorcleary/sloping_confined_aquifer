@@ -3,21 +3,21 @@ from pars import ModelParameters, load_parameters
 from multiprocessing import Pool
 
 def setup_pars():
-    ModelParameters("a0")
-    ModelParameters("a1", K_aquifer=1)
-    ModelParameters("a2", K_aquifer=100)
-    ModelParameters("a3", K_aquitard=0.001)
-    ModelParameters("a4", K_aquitard=0.1)
-    ModelParameters("a5", anis_aquifer=10)
-    ModelParameters("a6", anis_aquifer=1000)    
-    ModelParameters("a7", anis_aquitard=10)
-    ModelParameters("a8", anis_aquitard=1000)    
-    ModelParameters("a9", h_modern=-2)
-    ModelParameters("a10", h_modern=-5)
-    ModelParameters("a11", H=36, D=5)
-    ModelParameters("a12", H=21, D=20)
+    ModelParameters("c0")
+    ModelParameters("c1", K_aquifer=1)
+    ModelParameters("c2", K_aquifer=100)
+    ModelParameters("c3", K_aquitard=0.001)
+    ModelParameters("c4", K_aquitard=0.1)
+    ModelParameters("c5", anis_aquifer=10)
+    ModelParameters("c6", anis_aquifer=1000)    
+    ModelParameters("c7", anis_aquitard=10)
+    ModelParameters("c8", anis_aquitard=1000)    
+    ModelParameters("c9", h_modern=-2)
+    ModelParameters("c10", h_modern=-5)
+    ModelParameters("c11", H=36, D=5)
+    ModelParameters("c12", H=21, D=20)
     
-    return [f"a{i}" for i in range(13)]
+    return [f"c{i}" for i in range(13)]
 
 def run_model(name):
     pars = load_parameters(name)
