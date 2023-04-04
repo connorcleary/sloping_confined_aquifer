@@ -271,14 +271,18 @@ def build_steady_model(pars):
         pname="CHD-1",
         auxiliary="CONCENTRATION",
     )
+    
+    ws_results = f"./model_files/{pars.name}"
+    if not os.path.exists(ws_results):
+        os.makedirs(ws_results)
 
-    head_filerecord = "{}.hds".format(pars.name)
-    budget_filerecord = "{}.bud".format(pars.name)
+    head_filerecord = f"{pars.name}.hds"
+    budget_filerecord = f"{pars.name}.bud"
     flopy.mf6.ModflowGwfoc(
         gwf,
         head_filerecord=head_filerecord,
         budget_filerecord=budget_filerecord,
-        saverecord=[("HEAD", "ALL"), ("BUDGET", "ALL")],
+        saverecord=[("HEAD", "FREQUENCY", 10), ("BUDGET", "FREQUENCY", 10)],
     )
 
     gwt = flopy.mf6.ModflowGwt(sim, modelname="trans")
@@ -331,12 +335,12 @@ def build_steady_model(pars):
 
     flopy.mf6.ModflowGwtoc(
         gwt,
-        budget_filerecord="{}.cbc".format(gwt.name),
-        concentration_filerecord="{}.ucn".format(gwt.name),
+        budget_filerecord=f"{pars.name}.cbc",
+        concentration_filerecord=f"{pars.name}.ucn",
         concentrationprintrecord=[
             ("COLUMNS", 10, "WIDTH", 15, "DIGITS", 6, "GENERAL")
         ],
-        saverecord=[("CONCENTRATION", "ALL")],
+        saverecord=[("CONCENTRATION",  "FREQUENCY", 10)],
         printrecord=[("CONCENTRATION", "LAST"), ("BUDGET", "LAST")],
     )
 

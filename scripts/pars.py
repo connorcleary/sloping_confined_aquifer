@@ -39,7 +39,7 @@ class ModelParameters:
     """
     
     def __init__(self, name="none", L=10000, H=31, D=10, z0=44, offshore_proportion=1, 
-                sea_level=0, dx=10, dz=0.1, x_b=3500, K_aquifer=10, K_aquitard=0.01, anis_aquifer=100, anis_aquitard=100, 
+            sea_level=0, dx=10, dz=0.25, x_b=3500, K_aquifer=10, K_aquitard=0.01, anis_aquifer=100, anis_aquitard=100, 
                 sy_aquifer=0.24, sy_aquitard=0.24, ss_aquifer=1e-5, ss_aquitard=1e-5,
                 n_aquifer=0.3, n_aquitard=0.3, alpha_L=5, alpha_anisT=0.1, alpha_anisV=0.01, 
                 diff=8.64e-5, dt=1e3, T=1e3, T_init=0, v_slr=120/(20000*365), h_b=8.5, rho_f=1000, rho_s=1025, 
