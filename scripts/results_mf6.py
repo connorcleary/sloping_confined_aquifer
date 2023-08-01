@@ -158,8 +158,8 @@ def animate_func(num, ax, pars, concentration, head):
     return ax
 
 def plot_gif(name):
-    pars = load_parameters(name, backup=True)
-    concentration,head, times= get_results(name, backup=True)
+    pars = load_parameters(name)
+    concentration,head, times= get_results(name)
     qx_plot = []
     qz_plot = []
     head_plot = []
@@ -184,6 +184,8 @@ def plot_gif(name):
     writergif = animation.PillowWriter(fps=10)#N/6)
     ani.save(f, writer=writergif)
     #plt.show()
+def plot_gif(name):
+    pass
 
 
 def save_results_for_saltelli(name, ensemble_name):
@@ -192,9 +194,7 @@ def save_results_for_saltelli(name, ensemble_name):
     volume_list, centroid_list = proc.mixing(conc, pars)
     fresh_list = proc.fresh_volume(conc, pars)
     toe_list, tip_list = proc.interface(conc, pars)
-    flux_list = proc.abstracted_flux(conc, qx, pars)
-
-    metrics =np.stack((volume_list, centroid_list, fresh_list, toe_list, tip_list, flux_list))
+    metrics =np.stack((volume_list, centroid_list, fresh_list, toe_list, tip_list))
     if not os.path.exists(f"/home/superuser/sloping_confined_aquifer/results/{ensemble_name}/"):
         os.makedirs(f"/home/superuser/sloping_confined_aquifer/results/{ensemble_name}/")
      
@@ -206,178 +206,23 @@ def save_results_for_saltelli(name, ensemble_name):
     np.save(f"/home/superuser/sloping_confined_aquifer/results/{ensemble_name}/{name}_results.npy", results)
 
 def plot_color_mesh_saltelli(name, n):
-    for m in range(920, n):
-        try:
-            pars = load_parameters(f"{name}{m}", backup=True)
-            x = np.linspace(-pars.x_b, pars.L, pars.ncol)/1000
-            y = np.linspace(-pars.z0, pars.Lz-pars.z0, pars.nlay)
-            results = np.load(f"/home/superuser/sloping_confined_aquifer/results/{name}/{name}{m}_results.npy")
-            f, axs = plt.subplots(2, 2, figsize=(8.3, 3), layout="constrained", sharex=True, sharey=True)
-            plt.rcParams.update({'font.size': 9})
-            for i in range(pars.nlay):
-                for j in range(pars.ncol):
-                    if abs(results[0, 0][i, 0, j]) == 1.e30:
-                        results[0, 0][i, 0, j] = np.nan
-                        results[0, 1][i, 0, j] = np.nan
-                    if abs(results[1, 0][i, 0, j]) == 1.e30:
-                        results[1, 0][i, 0, j] = np.nan
-                        results[1, 1][i, 0, j] = np.nan
-
-            qx_pre = results[0, 2][::-5, 0, ::50] / np.sqrt(results[0, 2][::-5, 0, ::50]**2+np.abs(results[0, 3][::-5, 0, ::50])**2)
-            qz_pre = results[0, 3][::-5, 0, ::50] / np.sqrt(results[0, 2][::-5, 0, ::50]**2+np.abs(results[0, 3][::-5, 0, ::50])**2)
-            qx_post = results[1, 2][::-5, 0, ::50] / np.sqrt(results[1, 2][::-5, 0, ::50]**2+np.abs(results[1, 3][::-5, 0, ::50])**2)
-            qz_post = results[1, 3][::-5, 0, ::50] / np.sqrt(results[1, 2][::-5, 0, ::50]**2+np.abs(results[1, 3][::-5, 0, ::50])**2)
-            axs[0, 0].pcolormesh(x, y, results[0, 0][::-1, 0, :], cmap="viridis", vmax=35.7, vmin=0)
-            cm = axs[0, 1].pcolormesh(x, y, results[1, 0][::-1, 0, :], cmap="viridis", vmax=35.7, vmin=0)
-            axs[0, 0].quiver(x[::50], y[::5], qx_pre/2, qz_pre/2, color="white", width=0.002, scale=20)
-            axs[0, 1].quiver(x[::50], y[::5], qx_post/2, qz_post/2, color="white", width=0.002, scale=20)
-            axs[0, 0].set_box_aspect(0.3)
-            axs[0, 1].set_box_aspect(0.3)
-            axs[1, 0].set_box_aspect(0.3)
-            axs[1, 1].set_box_aspect(0.3)
-            head_min = np.nanmin(results[1, 1][::-1, 0, :])
-            head_max = np.nanmax(results[0, 1][::-1, 0, :])
-            cp0 = axs[1, 0].contour(x, y, results[0, 1][::-1, 0, :], vmin=head_min, vmax=head_max, colors="black", linewidths=0.75)
-            cp = axs[1, 1].contour(x, y, results[1, 1][::-1, 0, :], vmin=head_min, vmax=head_max, colors="black", linewidths=0.75)
-            axs[0,0].set_ylabel("Depth [masl]")
-            axs[1,0].set_ylabel("Depth [masl]")
-            axs[1,0].set_xlabel("Distance offshore [km]")
-            axs[1,1].set_xlabel("Distance offshore [km]")
-            cb = plt.colorbar(cm, shrink=1)
-            cb.ax.set_title('C [PSU]')
-            axs[1,0].clabel(cp0, inline=True, fontsize=7)
-            axs[1,1].clabel(cp, inline=True, fontsize=7)
-            axs[0, 0].set_title("Predevelopment")
-            axs[0, 1].set_title("Postdevelopment")
-
-            axs[0,0].annotate("Concentration \nand flux", xy=(0, 0.5), xytext=(-axs[0,0].yaxis.labelpad - 5, 0),
-                xycoords=axs[0,0].yaxis.label, textcoords='offset points',
-                size='large', ha='right', va='center', ma='center')
-            
-            axs[1,0].annotate("Head", xy=(0, 0.5), xytext=(-axs[1,0].yaxis.labelpad - 30, 0),
-                xycoords=axs[1,0].yaxis.label, textcoords='offset points',
-                size='large', ha='right', va='center', ma='center')
-            
-            if not os.path.exists(f"/home/superuser/sloping_confined_aquifer/results/{name}/plots/"):
-                os.makedirs(f"/home/superuser/sloping_confined_aquifer/results/{name}/plots/")
-
-            plt.savefig(f"/home/superuser/sloping_confined_aquifer/results/{name}/plots/{m}.png", dpi=600)
-            
-        except:
-            pass
-        # plot_gif(f"{name}{m}")
-
-def extract_pre_post_volume(name, n):
-    fresh_list_list = []
-    for m in range(n):
-        pars = load_parameters(f"{name}{m}", backup=True)
-        results = np.load(f"/home/superuser/sloping_confined_aquifer/results/{name}/{name}{m}_results.npy")
-        concs = [results[0][0], results[1][0]]
-        fresh_list = proc.fresh_volume_total(concs, pars)
-        fresh_list_list.append(fresh_list[0]-fresh_list[1])
-
-    return fresh_list_list, fresh_list[0]
-
-def paleo_volumes(name, n):
-    paleo_volumes = []
-    
-    for m in range(n):
-        pars = load_parameters(f"{name}{m}", backup=True)
-        results = np.load(f"/home/superuser/sloping_confined_aquifer/results/{name}/{name}{m}_results.npy")
-        concs = [results[0][0], results[1][0]]
-        qxs = [results[0][2], results[1][2]]
-        x_paleo = 0
-        for cell in pars.bottom_cells:
-            if qxs[0][cell[0], cell[1], cell[2]] < 0:
-                x_paleo = cell[2]
-                break
-        if x_paleo == 0:
-            paleo_volumes.append([0, 0])
-        else:
-            pv = [0, 0]
-            for i in range(2):               
-                for cell in pars.aquifer_cells:
-                    if cell[2]>=x_paleo and concs[i][cell[0], cell[1], cell[2]] <= 0.35:
-                        pv[i] += 1
-                pv[i] = pv[i]*pars.dx*pars.dz
-
-        paleo_volumes.append(pv)
-
-    return paleo_volumes
-
-def toe_position(name, n):
-    toe = []
-    for m in range(n):
-        pars = load_parameters(f"{name}{m}", backup=True)
-        results = np.load(f"/home/superuser/sloping_confined_aquifer/results/{name}/{name}{m}_results.npy")
-        concs = [results[0][0], results[1][0]]
-        toe.append(proc.interface(concs, pars)[0])
-    return toe
-
-def get_pre_concs(name, n):
-    concs = []
-    for m in range(n):
-        results = np.load(f"/home/superuser/sloping_confined_aquifer/results/{name}/{name}{m}_results.npy")
-        concs.append(results[0, 0][:, 0, :])
-    return concs 
-
-def get_pars(name, n):
-    inputs = []
-    for i in range(n):
-        pars = load_parameters(f"{name}{i}", backup=True)
-        # inputs.append([pars.H, pars.D, pars.K_aquifer, pars.K_aquitard, pars.alpha_L, pars.anis_aquifer, pars.beta, pars.L, pars.h_modern, pars.porosity])
-        # inputs.append([pars.K_aquifer, pars.K_aquitard, pars.alpha_L, pars.anis_aquifer, pars.h_modern, pars.porosity, pars.gradient])
-        inputs.append([pars.K_aquifer, pars.K_aquitard/pars.anis_aquitard, pars.alpha_L, pars.anis_aquifer, pars.anis_aquitard, pars.h_modern, pars.porosity])
-    return np.array(inputs)
-
-def get_outputs(name, n, inputs):
-    metrics = []
-    for i in range(n):
-        metrics.append(np.genfromtxt(f"/home/superuser/sloping_confined_aquifer/results/{name}/{name}{i}_metrics.csv", delimiter=","))
-    
-    fractional_volume_change = []
-    mixing = []
-    total_volume_change = []
-    original_volume = []
-    total_flux = []
-    predev_expected_flux = []
-    for i in range(n):
-        mixing.append((max([metrics[i][0][-1]-metrics[i][0][1],0]))/(metrics[i][2][1]-metrics[i][2][-1]))
-        fractional_volume_change.append((metrics[i][2][1]-metrics[i][2][-1])/metrics[i][2][1])
-        total_volume_change.append((metrics[i][2][1]-metrics[i][2][-1])*inputs[i][-1])
-        original_volume.append((metrics[i][2][1])*inputs[i][-1])
-        total_flux.append(sum(metrics[i][5][2:])*500) # 500 is the multiplying this by the number of days between observations
-        if total_flux[-1] > 0: 
-            pass
-        predev_expected_flux.append(metrics[i][5][1]*36500) # multiplying by the number of dates 
-
-    return fractional_volume_change, total_volume_change, mixing, original_volume, total_flux, predev_expected_flux
-
-def get_outputs_for_timescales(name, n, inputs):
-    dhh = [] # horizontal head change
-    dl = [] # distance to toe
-    dd = [] # depth from aquifer to saline groundwater in aquitard
-    dhv = [] # vertical head change
-    T = []
-    for i in range(n):
-        metrics = np.genfromtxt(f"/home/superuser/sloping_confined_aquifer/results/{name}/{name}{i}_metrics.csv", delimiter=",")
+    for i, in range(1):
+        pars = load_parameters(name)
+        x = np.linspace(-pars.x_b, pars.L, pars.ncol)
+        y = np.linspace(-pars.z0, pars.Lz-pars.z0, pars.nlay)
         results = np.load(f"/home/superuser/sloping_confined_aquifer/results/{name}/{name}{i}_results.npy")
-        pars = load_parameters(f"{name}{i}", backup=True)
-        shoreline = pars.bottom_cells[int(pars.x_b/pars.dx)]
-        toe_cell = pars.bottom_cells[int((pars.x_b+metrics[3,1])/pars.dx)]
-        # find head at toe 
-        dhh.append(results[1, 1][shoreline[0], shoreline[1], shoreline[2]]
-                   -results[1, 1][toe_cell[0], toe_cell[1], toe_cell[2]])
-        dl.append(metrics[3,1])
-        dd.append(pars.D - ((pars.nlay - np.argmax(np.fliplr(np.array([(36>results[0, 0][:, 0, int(pars.x_b/pars.dx)+1]) & (results[0, 0][:, 0, int(pars.x_b/pars.dx)+1]>0.35)]))))*pars.dz-(pars.Lz-pars.z0)))
-        dhv.append(results[1,1][int(shoreline[0]-pars.H/pars.dz), shoreline[1], shoreline[2]]
-                   - results[1,1][int(((pars.nlay - np.argmax(np.fliplr(np.array([(36>results[0, 0][:, 0, int(pars.x_b/pars.dx)+1]) & (results[0, 0][:, 0, int(pars.x_b/pars.dx)+1]>0.35)]))))*pars.dz-(pars.Lz-pars.z0))/pars.dz), shoreline[1], shoreline[2]])
-        if (metrics[2][1]-metrics[2][-1])/metrics[2][1] < 1:
-            T.append(100/((metrics[2][1]-metrics[2][-1])/metrics[2][1]))
-        else: 
-            T.append(500/365*np.argmax([metrics[2][1:]==0]))
-
-    return {"dhh": np.array(dhh), "dl": np.array(dl), "dd": np.array(dd), "dhv": np.array(dhv), "T_sal": np.array(T)}
+        f, axs = plt.subplots(2, 2)
+        axs[0, 0].pcolormesh(results[0, 0][:, 0, :], cmap="viridis", vmax=35.7, vmin=0)
+        axs[0, 1].pcolormesh(results[1, 0][:, 0, :], cmap="viridis", vmax=35.7, vmin=0)
+        axs[0, 0].quiver(results[0, 2][:, 0, :], results[0, 3][:, 0, :])
+        axs[0, 1].quiver(results[1, 2][:, 0, :], results[1, 3][:, 0, :])
+        axs[0, 0].set_box_aspect(0.1)
+        axs[0, 1].set_box_aspect(0.1)
+        axs[1, 0].set_box_aspect(0.1)
+        axs[1, 1].set_box_aspect(0.1)
+        axs[1, 0].contour(results[0, 1][:, 0, :])
+        axs[1, 1].contour(results[0, 1][:, 0, :])
+        plt.savefig(f"/home/superuser/sloping_confined_aquifer/results/{name}/plots/{i}.png")
 
 if __name__=="__main__":
     name = input("name:")
