@@ -1,6 +1,7 @@
 import os
 import pickle
 import numpy as np
+import pdb
 
 class ModelParameters:
     """
@@ -38,13 +39,12 @@ class ModelParameters:
             frequency: frequency of timesteps save for results
     """
     
-    def __init__(self, name="none", L=10000, H=31, D=10, z0=44, offshore_proportion=1, 
-                sea_level=0, dx=10, dz=0.1, x_b=3500, K_aquifer=10, K_aquitard=0.01, anis_aquifer=100, anis_aquitard=100, 
-                sy_aquifer=0.24, sy_aquitard=0.24, ss_aquifer=1e-5, ss_aquitard=1e-5,
+    def __init__(self, name="none", L=50000, H=16, D=25, z0=76, offshore_proportion=1, 
+            sea_level=0, dx=25, dz=1, x_b=4000, K_aquifer=300, K_aquitard=0.01, anis_aquifer=100, anis_aquitard=100,
+                sy=0.24, Ss=1e-6,
                 n_aquifer=0.3, n_aquitard=0.3, alpha_L=5, alpha_anisT=0.1, alpha_anisV=0.01, 
-                diff=8.64e-5, dt=1e3, T=1e3, T_init=0, v_slr=120/(20000*365), h_b=8.5, rho_f=1000, rho_s=1025, 
-                exe_file=r"./exe_path.txt", frequency=1, porosity=0.3, steady=False, T_modern=365*200, h_modern=-1, flux_modern=None, dt_modern=1000):
-
+                diff=8.64e-5, dt=5000, T=5000, T_init=100*10000, v_slr=120/(20000*365), h_b=8.5, rho_f=1000, rho_s=1025, 
+                exe_file=r"./exe_path.txt", frequency=1, porosity=0.3, steady=False, T_modern=365*100, h_modern=-1, flux_modern=None, dt_modern=1000, outputs="all", delta_h=None, h_over=None, gradient=1):
 
         self.name=name
         self.porosity=porosity
@@ -61,42 +61,49 @@ class ModelParameters:
         self.K_aquitard=K_aquitard
         self.anis_aquifer=anis_aquifer
         self.anis_aquitard=anis_aquitard
-        self.sy_aquifer=sy_aquifer
-        self.sy_aquitard=sy_aquitard
-        self.ss_aquifer=ss_aquifer
-        self.ss_aquitard=ss_aquitard
-        self.n_aquifer=n_aquifer
-        self.n_aquitard=n_aquitard
+        self.sy=sy
+        self.ss=Ss
+        self.n_aquifer=porosity
+        self.n_aquitard=porosity
         self.alpha_L=alpha_L
         self.alpha_anisT=alpha_anisT
         self.alpha_anisV=alpha_anisV
         self.diff=diff
         self.dt=dt
-        self.T=T
-        self.T_init=T_init
+        self.T=T	
+        self.T_init=100*10000
         self.v_slr=v_slr
-        self.h_b=h_b
         self.rho_f=rho_f
         self.rho_s=rho_s
         self.beta = np.arctan((self.z0-self.D-self.H)/self.L)
         self.Lx= self.L+self.x_b
         self.Lz = self.z0+self.x_b*np.tan(self.beta)
-        self.exe_path = "/home/ccleary/sloping_confined_aquifer/mf6"
+        self.exe_path = "/home/superuser/mf6"
         self.frequency=frequency
         self.nrow=1
         self.ncol = int(np.floor(self.Lx/self.dx))
         self.nlay = int(np.floor(self.Lz/self.dz))
         self.steady = steady
         self.T_modern = T_modern
-        self.h_modern = h_modern
+        if h_over == None:
+            self.h_b=h_b
+        else: 
+            self.h_b=self.Lz-self.z0+h_over
+        if delta_h == None:
+            self.h_modern = h_modern
+        else:
+            self.h_modern = self.h_b+delta_h
         self.flux_modern = flux_modern
         self.aquifer_cells = None
         self.aquitard_cells = None
         self.top_cells = None
         self.bottom_cells = None
         self.dt_modern = dt_modern
-
+        self.outputs = outputs
+        self.gradient = gradient
+        self.Ss = Ss
         self.save_parameters()
+        # pdb.set_trace()
 
     def __getstate__(self):
         return self.__dict__
@@ -111,14 +118,25 @@ class ModelParameters:
         model_ws = f"./model_files/{self.name}"
         if not os.path.exists(model_ws):
             os.makedirs(model_ws)
+        model_ws_b = f"./model_files_backup/{self.name}"
+        if not os.path.exists(model_ws_b):
+            os.makedirs(model_ws_b)
 
         f = open(f"{model_ws}/pars", 'wb')
         pickle.dump(self, f)
         f.close()
+        
+        f = open(f"{model_ws_b}/pars", 'wb')
+        pickle.dump(self, f)
+        f.close()
 
-def load_parameters(name):
+def load_parameters(name, backup=False):
 
-    model_ws = f"./model_files/{name}"
+    if not backup:
+        model_ws = f"./model_files/{name}"
+    else: 
+        model_ws = f"./model_files_backup/{name}"
+    	
     f = open(f"{model_ws}/pars", 'rb')
     temp = pickle.load(f)
     f.close()          
