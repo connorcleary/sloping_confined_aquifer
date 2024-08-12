@@ -40,11 +40,11 @@ class ModelParameters:
     """
     
     def __init__(self, name="none", L=50000, H=16, D=25, z0=76, offshore_proportion=1, 
-            sea_level=0, dx=50, dz=1, x_b=2000, K_aquifer=300, K_aquitard=0.01, anis_aquifer=100, anis_aquitard=100,
-                sy_aquifer=0.24, sy_aquitard=0.24, ss_aquifer=1e-5, ss_aquitard=1e-5,
+            sea_level=0, dx=25, dz=1, x_b=4000, K_aquifer=300, K_aquitard=0.01, anis_aquifer=100, anis_aquitard=100,
+                sy=0.24, Ss=1e-6,
                 n_aquifer=0.3, n_aquitard=0.3, alpha_L=5, alpha_anisT=0.1, alpha_anisV=0.01, 
-                diff=8.64e-5, dt=5000, T=5000, T_init=100*10000, v_slr=120/(20000*365), h_b=8.5, rho_f=1000, rho_s=1025, 
-                exe_file=r"./exe_path.txt", frequency=1, porosity=0.3, steady=False, T_modern=365*100, h_modern=-1, flux_modern=None, dt_modern=1000, outputs="all", delta_h=None, h_over=None):
+                diff=8.64e-5, dt=5000, T=5000, T_init=10*10000, v_slr=120/(20000*365), h_b=8.5, rho_f=1000, rho_s=1025, 
+                exe_file=r"./exe_path.txt", frequency=1, porosity=0.3, steady=False, T_modern=365*100, h_modern=-1, flux_modern=None, dt_modern=1000, outputs="all", delta_h=None, h_over=None, gradient=1):
 
         self.name=name
         self.porosity=porosity
@@ -61,19 +61,17 @@ class ModelParameters:
         self.K_aquitard=K_aquitard
         self.anis_aquifer=anis_aquifer
         self.anis_aquitard=anis_aquitard
-        self.sy_aquifer=sy_aquifer
-        self.sy_aquitard=sy_aquitard
-        self.ss_aquifer=ss_aquifer
-        self.ss_aquitard=ss_aquitard
-        self.n_aquifer=n_aquifer
-        self.n_aquitard=n_aquitard
+        self.sy=sy
+        self.ss=Ss
+        self.n_aquifer=porosity
+        self.n_aquitard=porosity
         self.alpha_L=alpha_L
         self.alpha_anisT=alpha_anisT
         self.alpha_anisV=alpha_anisV
         self.diff=diff
         self.dt=dt
         self.T=T	
-        self.T_init=100*10000
+        self.T_init=10*10000
         self.v_slr=v_slr
         self.rho_f=rho_f
         self.rho_s=rho_s
@@ -102,6 +100,9 @@ class ModelParameters:
         self.bottom_cells = None
         self.dt_modern = dt_modern
         self.outputs = outputs
+        self.gradient = gradient
+        self.Ss = Ss
+        self.z_b = self.Lz-self.z0
         self.save_parameters()
         # pdb.set_trace()
 
