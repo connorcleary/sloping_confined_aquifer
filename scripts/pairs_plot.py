@@ -181,7 +181,7 @@ def pairs_plot_2(results, scales, pars, units, lims=None, title=None):
 
 def pairs_plot_3(inputs, results, scales, pars, units, lims=None, title=None):
     # pairs plot wihout individual effects
-    f, axs = plt.subplots(len(units)-1, len(units)-1, figsize=(4,4), sharex='col', sharey='row', layout="tight")
+    f, axs = plt.subplots(len(units)-1, len(units)-1, figsize=(9,9), sharex='col', sharey='row', layout="tight")
     plt.rcParams.update({'font.size': 9})
 
     for row in range(len(units)-1):

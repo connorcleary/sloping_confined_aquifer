@@ -100,7 +100,7 @@ def fit_and_plot_regression(name, pars, inputs, outputs):
     # ax.set_ylabel(r"$log_{10} \frac{\Delta V^{100}_{ofg}}{V^{pre}_{ofg}}$  (predicted)")
     # plt.tight_layout()
     # plt.show()
-    outputs = results_mf6.get_outputs_for_timescales(name, 1024, inputs)["T_sal"]
+    outputs = results_mf6.get_outputs_for_zscales(name, 1024, inputs)["T_sal"]
     
     f, axs = plt.subplots(1, 2, figsize=(8,4), sharey=True, layout="tight")
     plt.rcParams.update({'font.size': 9})
@@ -350,9 +350,11 @@ def Si_combined_seperate(problem, original_volume, total_volume_change, fraction
     if log == True:
         Si.append(sobol.analyze(problem, np.log10(np.asarray(original_volume))))
         Signs.append(get_relationships(inputs_retrieved, original_volume))
+        total_volume_change = np.asarray(total_volume_change)
+        total_volume_change[total_volume_change==0] = 1
         Si.append(sobol.analyze(problem, np.log10(np.asarray(total_volume_change))))
         Signs.append(get_relationships(inputs_retrieved, total_volume_change))
-        Si.append(sobol.analyze(problem, np.log10(np.asarray(fractional_volume_change))))
+        Si.append(sobol.analyze(problem, np.asarray(fractional_volume_change)))
         Signs.append(get_relationships(inputs_retrieved, fractional_volume_change))
     else:
         Si.append(sobol.analyze(problem, np.asarray(original_volume)))
@@ -387,7 +389,7 @@ def Si_combined_seperate(problem, original_volume, total_volume_change, fraction
                 markers.append("v")
 
         for j in range(len(colors)):
-            axs[i].scatter(np.max([Si[i]["S1"][j], 0]), np.max([Si[i]["ST"][j], 0]), c=colors[j], label=pars[j], marker=markers[j], edgecolors="black", linewidths=0.5)
+            axs[i].scatter(np.max([np.abs(Si[i]["S1"][j]), 0]), np.max([np.abs(Si[i]["ST"][j]), 0]), c=colors[j], label=pars[j], marker=markers[j], edgecolors="black", linewidths=0.5, s=50)
         
         axs[i].plot(np.linspace(0, 1 ,5), np.linspace(0, 1, 5), lw=0.5, ls="--", color="grey")
         axs[i].set_box_aspect(1)  
@@ -415,8 +417,8 @@ def plot_effieciency_simple_effects(efficiency, total_flux, h, K, scales, lims):
     f, ax = plt.subplots(figsize=(4,4), layout="tight")
     plt.rcParams.update({'font.size': 9})
     active = np.array(total_flux) < 0
-    sc = ax.scatter(h[active], K[active], c=efficiency[active], marker="o", alpha=0.4, s=5, cmap="viridis")
-    sc = ax.scatter(h[~active], K[~active], c=efficiency[~active], marker="D", alpha=0.4, s=5, cmap="viridis")
+    sc = ax.scatter(h[active], K[active], c=efficiency[active], marker="o", alpha=0.7, s=10, cmap="viridis")
+    sc = ax.scatter(h[~active], K[~active], c=efficiency[~active], marker="D", alpha=0.7, s=10, cmap="viridis")
     X1, X2, Y = fit_polynomial_regression(h, K, efficiency, scales, lims)
     ax.contour(X1, X2, Y, cmap="viridis") 
     ax.set_yscale("log")
@@ -517,8 +519,8 @@ def plot_time_scales(name, inputs, outputs):
     # T_h = L**2*inputs[:, -1]/(delta_h_v*inputs[:, 0]*365)
     # T_v = -D**2*inputs[:, -1]/(inputs[:, -2]*inputs[:,1]*365) 
     # T_sal = 100/fraction_salinized
-    T_h = -outputs["dl"]**2*inputs[:, -1]/(outputs["dhh"]*inputs[:, 0]*365)
-    T_v = -outputs["dd"]**2*inputs[:, -1]/(outputs["dhv"]*inputs[:,1]*365)
+    T_h = -outputs["dl0"]**2*inputs[:, -1]/(outputs["dhh"]*inputs[:, 0]*365)
+    T_v = -outputs["dd0"]**2*inputs[:, -1]/(outputs["dhv"]*inputs[:,1]*365)
     residual = [np.min([h, v]) for (h, v) in zip(T_h, T_v)]-outputs["T_sal"]
     active = [outputs["dhh"]<0]
     over = [residual > 0]
@@ -579,3 +581,19 @@ def plot_paleo_fraction_salinization(name, inputs, pv, total_total_volume=None):
     # ax.set_yscale("symlog", linthresh=0.01)
     plt.show()
     return 
+
+
+def plot_vulnerability(inputs, h, fractional_volume_change):
+    # plot the ratio of conductivities, against h
+    f, axs = plt.subplots(figsize=(4,4), layout="tight")
+    plt.rcParams.update({'font.size': 9})
+    sc = axs.scatter(inputs[:,-2], inputs[:,0]/inputs[:,1], c=fractional_volume_change, alpha=0.7, s=10, norm=colors.BoundaryNorm(boundaries=np.linspace(0,1,6), ncolors=256))
+    axs.set_yscale("log")
+    plt.gca().invert_xaxis()
+    cb = plt.colorbar(sc, ax=axs, cmap="viridis", location="right", shrink=0.6)
+    axs.set_ylabel(r"$K_a/K_b^V$ [-]")
+    axs.set_xlabel(r"$h_{post}$ [m]")
+    axs.vlines(0.875, ls="--", colors="red", ymin=1e3, ymax=1e8)
+    axs.set_box_aspect(1)
+    plt.title("Fraction OFG salinized")
+    plt.show()

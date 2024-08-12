@@ -13,8 +13,7 @@ from SALib.analyze import sobol
 import pairs_plot
 import paper_plots
 import pickle
-from clustering import find_plot_clusters
-from single_similarity import all_single_similarity
+import supporting_plots as sp
 
 def produce_samples(name, n, d, names, ranges, scales, backup=False):
     
@@ -79,9 +78,9 @@ def model_run_sens(inputs):
     # function to run model with fixed geometry and variable hydraulic gradient
     ensemble_name, name, real = inputs
     pars = ModelParameters(name, H=20, D=20, K_aquifer=real[0], 
-                           K_aquitard=real[1]*real[4], alpha_L=real[2], anis_aquifer=real[3], anis_aquitard=real[4],
-                           z0=55, L=30000, x_b=4000,  
-                           h_modern=real[5], porosity=real[6], gradient=1, Ss=real[7], outputs="all", dz=0.5, dt=5)    
+                        K_aquitard=real[1]*real[3], alpha_L=real[2], anis_aquifer=real[3], anis_aquitard=real[3],
+                        z0=55, L=30000, x_b=4000,  
+                        h_modern=real[4], porosity=real[-1], gradient=1, Ss=1e-6, outputs="all", dx=5, dz=0.5, dt=100)    
     sim = mf6.build_steady_model(pars)
     succ = True
     try:
@@ -89,13 +88,15 @@ def model_run_sens(inputs):
     except:
         succ= False
     
+    # save_results_for_saltelli(name, ensemble_name)
+
     if succ: 
         try:
             save_results_for_saltelli(name, ensemble_name)
         except: 
             pass
         
-    mf6.remove_model_files(name)  
+    # mf6.remove_model_files(name)  
     #plot_color_mesh_saltelli(name, int(name.replace(ensemble_name, "")))
 
 
@@ -104,7 +105,7 @@ def rerun(name, inputs, new_name=None):
     for i, sample in enumerate(inputs):
         if not os.path.isfile(f"/home/superuser/sloping_confined_aquifer/results/{name}/{name}{i}_metrics.csv"):
             inputs_new.append([name, f"{name}{i}", sample])
-    p=Pool(processes=5)
+    p=Pool(processes=4)
     p.map(model_run_sens, inputs_new)
     #model_run_sens(inputs_new[0])
 
@@ -125,42 +126,54 @@ def main_analysis():
     # pars = [r"$K_a$", r"$K_b^V$", r"$\alpha$", r"$anis_a$", r"$anis_b$", r"$h_{post}$", r"$n$"]
     # units = ["m/day", "m/day", "m", "-", "-", "m", "-"]
     # param_values, problem = produce_samples(name, 4, 7, pars, ranges, scales)
-
-    name = "paper3"
+    # name = "paper3new6"
+    # ranges = [[1, 100],
+    #       [1e-5, 1e-3],
+    #       [0.1, 10],
+    #       [1, 100],
+    #       [-10, 2],
+    #       [0.2,0.8]]
+    # scales = ["log", "log", "log", "log", "linear", "linear"] # logs
+    # pars = [r"$K_a$", r"$K_b^V$", r"$\alpha$", r"$anis$", r"$h_{post}$", r"$n$"]
+    # units = ["m/day", "m/day", "m", "-", "m", "-"]
+    name = "paper3new7"
     ranges = [[1, 100],
           [1e-5, 1e-3],
           [0.1, 10],
           [1, 100],
-          [1, 100],
           [-10, 2],
-          [0.2,0.8],
-          [1e5,1e7]]
-    scales = ["log", "log", "log", "log", "log", "linear", "linear", "log"] # logs
-    pars = [r"$K_a$", r"$K_b^V$", r"$\alpha$", r"$anis_a$", r"$anis_b$", r"$h_{post}$", r"$n$", r"$S_s$"]
-    units = ["m/day", "m/day", "m", "-", "-", "m", "-", "1/m"]
-    param_values, problem = produce_samples(name, 64, 7, pars, ranges, scales, backup=True)
-    # plot_color_mesh_saltelli(name, 1024)
-    inputs_retrieved = np.asarray(get_pars(name, 1024))
-    fractional_volume_change, total_volume_change, mixing, original_volume, total_flux, predev_total_flux = get_outputs(name, 1024, inputs_retrieved)
+          [0.2,0.8]]
+    scales = ["log", "log", "log", "log", "linear", "linear"] 
+    pars = [r"$K_a$", r"$K_b^V$", r"$\alpha$", r"$anis$", r"$h_{modern}$", r"$n$"]
+    units = ["m/day", "m/day", "m", "-", "m", "-"]
+    param_values, problem = produce_samples(name, 64, 6, pars, ranges, scales, backup=True)
     
-    h = -(inputs_retrieved[:, -2]-(0.025/1)*35)
-    pass
-    #paper_plots.Si_combined_seperate(problem, original_volume, total_volume_change, fractional_volume_change, pars, inputs_retrieved)
-    # pairs_plot.pairs_plot_3(inputs_retrieved[:, [0, 1, 2, 3, 5]], fractional_volume_change, scales[[0, 1, 2, 3, 5]], pars[[0, 1, 2, 3, 5]], units[[0, 1, 2, 3, 5]], ranges[[0, 1, 2, 3, 5]])
+
+    inputs_retrieved = np.genfromtxt(f"/home/superuser/sloping_confined_aquifer/ensemble_pars/{name}.csv", delimiter=",")
+    # inputs_retrieved = np.asarray(get_pars(name, 896))
+    fractional_volume_change, total_volume_change, mixing, original_volume, total_flux, predev_total_flux = get_outputs(name, 896, inputs_retrieved)
+    # original_total_volume, total_total_volume_change = results_mf6.extract_pre_post_volume(name, 1152)
+    # h = -(inputs_reetrieved[:, -2]-(0.025/1)*35)
+    # total_fraction = [total_total_volume_change[i]/original_total_volume[i] for i in range(1152)]
+    # paper_plots.plot_vulnerability(inputs_retrieved, h, fractional_volume_change)
+    # paper_plots.Si_combined_seperate(problem, original_volume, total_volume_change, fractional_volume_change, pars, inputs_retrieved, log=False)
+    # indices = [0, 1, 3, 4]
+    #pairs_plot.pairs_plot_3(inputs_retrieved[:, [0, 1, 3, 4]], fractional_volume_change, [scales[x] for x in indices], [pars[x] for x in indices], [units[x] for x in indices], [ranges[x] for x in indices])
     # pairs_plot.pairs_plot_3(inputs_retrieved[:, :4], fractional_volume_change, scales[:4], pars[:4], units[:4], ranges[:4])
 
     # paper_plots.fit_and_plot_regression(name, pars, inputs_retrieved, fractional_volume_change)
-    
-    pv = np.array(paleo_volumes(name, 1024))
-    total_total_volume_change, original_total_volume = results_mf6.extract_pre_post_volume(name, 1024)
+    # exit()
+    # pv = np.array(paleo_volumes(name, 896))
+    # total_total_volume_change, original_total_volume = results_mf6.extract_pre_post_volume(name, 1024)
     # paper_plots.plot_paleo_fraction_salinization(name, inputs_retrieved, pv, np.array(original_total_volume))
-    outputs = results_mf6.get_outputs_for_timescales(name, 1024, inputs_retrieved)
+    # outputs = results_mf6.get_outputs_for_timescales(name, 896, inputs_retrieved)
     # paper_plots.plot_time_scales(name, inputs_retrieved, outputs)
-    
-    total_total_volume_change, original_total_volume = results_mf6.extract_pre_post_volume(name, 1024)
-    efficiency = (np.asarray(predev_total_flux)-np.asarray(total_flux))/(np.asarray(np.asarray(total_total_volume_change)))
-    paper_plots.plot_effieciency_simple_effects(efficiency, total_flux, h, inputs_retrieved[:, 1], ["linear", "log"], [[np.min(h), np.max(h)],[0.000001, 0.001]])
-    exit()
+   
+    # original_total_volume, total_total_volume_change = results_mf6.extract_pre_post_volume(name, 896)
+    # efficiency = (np.asarray(predev_total_flux)-np.asarray(total_flux))/(np.asarray(np.asarray(total_total_volume_change)))
+    # conduc_ave = np.log10(20*inputs_retrieved[:, 0])+np.log10(30000*inputs_retrieved[:,1])
+    # paper_plots.plot_effieciency_simple_effects(efficiency, total_flux, inputs_retrieved[:, -2], conduc_ave, ["linear", "linear"], [[np.min(inputs_retrieved[:,-2]), np.max(inputs_retrieved[:,-2])],[np.min(conduc_ave), np.max(conduc_ave)]])
+    # exit()
     # ranges = [[1, 1000],
     #       [0.0001, 0.001],
     #       [0.1, 10],
@@ -177,62 +190,61 @@ def main_analysis():
     # units = ["m/day", "m/day", "m", "-", "-", "m", "-"]
     # param_values, problem = produce_samples(name, 64, 7, pars, ranges, scales) # 8
     # inputs = [[name, f"{name}{i}", sample] for i, sample in enumerate(param_values)]
-    inputs_retrieved = np.asarray(get_pars(name, 1024))    # rerun(name, inputs_retrieved)
-    fractional_volume_change, total_volume_change, mixing, original_volume, total_flux, predev_total_flux = get_outputs(name, 1024, inputs_retrieved)
-    fractional_volume_change = np.array(fractional_volume_change)
-    total_volume_change = np.array(total_volume_change)
-    fractional_volume_change[fractional_volume_change <= 0] = 0.0001 
-    total_volume_change[total_volume_change <= 0] = 0.0001
-    pv = np.array(paleo_volumes(name, 1024))
-    fraction_paleo = 1-(original_volume-pv[:,0])/original_volume
-    volume_paleo = pv[:,0]
-    paleo_fraction_salinized = np.array((pv[:,0] - pv[:,1])/pv[:,0])
-    paleo_fraction_salinized[np.isnan(paleo_fraction_salinized)] = 0
-    total_total_volume_change, original_total_volume = results_mf6.extract_pre_post_volume(name, 1024)
-    paper_plots.plot_paleo_fraction_salinization(name, inputs_retrieved, pv, np.array(original_total_volume))
-    exit()
-    outputs = results_mf6.get_outputs_for_timescales(name, 1024, inputs_retrieved)
-    paper_plots.plot_time_scales(name, inputs_retrieved, outputs)
-    # pv = np.array(paleo_volumes(name, 64))
+    # inputs_retrieved = np.asarray(get_pars(name, 1024))    # rerun(name, inputs_retrieved)
+    # fractional_volume_change, total_volume_change, mixing, original_volume, total_flux, predev_total_flux = get_outputs(name, 1024, inputs_retrieved)
+    # fractional_volume_change = np.array(fractional_volume_change)
+    # total_volume_change = np.array(total_volume_change)
+    # fractional_volume_change[fractional_volume_change <= 0] = 0.0001 
+    # total_volume_change[total_volume_change <= 0] = 0.0001
+    # pv = np.array(paleo_volumes(name, 1024))
     # fraction_paleo = 1-(original_volume-pv[:,0])/original_volume
     # volume_paleo = pv[:,0]
     # paleo_fraction_salinized = np.array((pv[:,0] - pv[:,1])/pv[:,0])
     # paleo_fraction_salinized[np.isnan(paleo_fraction_salinized)] = 0
-    paper_plots.Si_combined_seperate(problem, original_volume, total_volume_change, fractional_volume_change, pars, inputs_retrieved)
-    # paper_plots.Si_combined_seperate(problem, fraction_paleo, volume_paleo, paleo_fraction_salinized, pars, inputs_retrieved, log=False)
+    # total_total_volume_change, original_total_volume = results_mf6.extract_pre_post_volume(name, 1024)
+    # paper_plots.plot_paleo_fraction_salinization(name, inputs_retrieved, pv, np.array(original_total_volume))
+    # exit()
+    # outputs = results_mf6.get_outputs_for_timescales(name, 1024, inputs_retrieved)
+    # paper_plots.plot_time_scales(name, inputs_retrieved, outputs)
+    pv = np.array(paleo_volumes(name, 896))
+    fraction_paleo = 1-(original_volume-pv[:,0])/original_volume
+    volume_paleo = pv[:,0]
+    paleo_fraction_salinized = np.array((pv[:,0] - pv[:,1])/pv[:,0])
+    paleo_fraction_salinized[np.isnan(paleo_fraction_salinized)] = 0
+    #aper_plots.Si_combined_seperate(problem, original_volume, total_volume_change, fractional_volume_change, pars, inputs_retrieved)
+    paper_plots.Si_combined_seperate(problem, fraction_paleo, volume_paleo, paleo_fraction_salinized, pars, inputs_retrieved, log=False)
     # paper_plots.Si_single(problem, (original_volume-pv[:,0])/original_volume, r"Fraction $OFG_{paleo}$ salinized", pars, inputs_retrieved)
     # plot_color_mesh_saltelli(name, 1024)
-    total_total_volume_change, original_total_volume = np.asarray(results_mf6.extract_pre_post_volume(name, 64))
+    # original_total_volume, total_total_volume_change = np.asarray(results_mf6.extract_pre_post_volume(name, 896))
     # efficiency = 1-((np.asarray(total_flux))+(np.asarray(total_total_volume_change)))/(np.asarray(total_total_volume_change))
-    efficiency = (np.asarray(predev_total_flux)-np.asarray(total_flux))/(np.asarray(total_total_volume_change))
-    h = -(inputs_retrieved[:, -2]-(0.025/1)*30)
-    paper_plots.plot_effieciency_simple_effects(efficiency, total_flux, h, inputs_retrieved[:, 1], ["linear", "log"], [[-2, 2],[0.000001, 0.001]])
+    # efficiency = (np.asarray(predev_total_flux)-np.asarray(total_flux))/(np.asarray(total_total_volume_change))
+    # efficiency[efficiency != efficiency] = 0
+    # h = -(inputs_retrieved[:, -2]-(0.025/1)*30)
+    # paper_plots.plot_effieciency_simple_effects(efficiency, total_flux, inputs_retrieved[:, -2], inputs_retrieved[:, 0], ["linear", "log"], [[-10, 2],[1, 100]])
 
 
 def main_sensitivity():
     # Main function for running sensitivity analysis.
     # The difference between this and other main function is that aquifer geometry is constant
     # An added sensitivity is to the predevelopment hydraulic gradient
-    name = "paper3finez"
+    name = "paper5"
     ranges = [[1, 100],
           [1e-5, 1e-3],
           [0.1, 10],
           [1, 100],
-          [1, 100],
           [-10, 2],
-          [0.2,0.8],
-          [1e-7,1e-5]]
-    scales = ["log", "log", "log", "log", "log", "linear", "linear", "log"] # logs
-    pars = [r"$K_a$", r"$K_b^V$", r"$\alpha$", r"$anis_a$", r"$anis_b$", r"$h_{post}$", r"$n$", r"$S_s$"]
-    units = ["m/day", "m/day", "m", "-", "-", "m", "-", "1/m"]
-    # param_values, problem = produce_samples(name, 4, 8, pars, ranges, scales) # 8
-    # inputs = [[name, f"{name}{i}", sample] for i, sample in enumerate(param_values)]
+          [0.2,0.8]]
+    scales = ["log", "log", "log", "log", "linear", "linear"] 
+    pars = [r"$K_a$", r"$K_b^V$", r"$\alpha$", r"$anis$", r"$h_{post}$", r"$n$"]
+    units = ["m/day", "m/day", "m", "-", "m", "-"]
+    param_values, problem = produce_samples(name, 4, 6, pars, ranges, scales) # 8
+    inputs = [[name, f"{name}{i}", sample] for i, sample in enumerate(param_values)]
     # inputs_retrieved = np.asarray(get_pars(name, 1024))    # rerun(name, inputs_retrieved)
-    # p=Pool(processes=8)
+    # p=Pool(processes=2)
     # p.map(model_run_sens, inputs)
-    # model_run_sens(inputs[0])
-    inputs_retrieved = np.genfromtxt(f"/home/superuser/sloping_confined_aquifer/ensemble_pars/{name}.csv", delimiter=",")
-    rerun(name, inputs_retrieved)
+    model_run_sens(["test5", "test50", [100, 1e-5, 10, 10, 0, 0.5]])
+    # inputs_retrieved = np.genfromtxt(f"/home/superuser/sloping_confined_aquifer/ensemble_pars/{name}.csv", delimiter=",")
+    # rerun(name, inputs_retrieved)
     # model_run_sens(inputs[0])
     # plot_color_mesh_saltelli(name, 1024)
     # paper_plots.plot_rate_of_intrusion(name, 1024)
@@ -340,5 +352,8 @@ def main():
     # # pairs_plot.pairs_plot(results2, scales, pars, units, lims=None, title=None)
 
 if __name__=="__main__":
-    main_sensitivity()
-    #main_analysis()
+    plot_color_mesh_saltelli("test5", 1)
+    #main_sensitivity()
+    # main_analysis()
+    # sim = mf6.build_model_start_from_modern("test4", "1", "1b", new_head=-2)
+    # mf6.run_model(sim)

@@ -361,42 +361,45 @@ def fmt(x):
 
 ## Input
 ## Case 1
-kas = np.logspace(0, 2)
-cs = np.logspace(np.log10(20/0.001), np.log10(20/0.00001))
-ns = np.linspace(0.2, 0.8)
-hs = [1, 2, 4]
-tips = np.zeros((len(kas), len(cs), len(hs)))
-gammas = np.zeros((len(kas), len(ns)))
-for i in range(len(kas)):
-    for j in range(len(cs)):
-            for k in range(len(hs)):
-                sc1 = SemiCoastHead(k=kas[i], H=20, c=cs[j], h=hs[k], x=-3000, rhof=1000, rhos=1025, Ls=10000, ztop=-25, sealevel=0)
-                tips[i, j, k] =sc1.toe()
-                # sc1.plot()
-    for j in range(len(ns)):
-        gammas[i, j] = Gamma(kas[i], ns[j])
-f, axs = plt.subplots(1, 2, figsize = (8, 3.5), layout="tight")
-for i in range(1):
-    CS = axs[i].contour(kas, 20/cs, tips[:, :, i].T/1000, colors="black", levels=np.linspace(0, 10, 5))
+def plot_obj1():
+    kas = np.logspace(0, 2)
+    cs = np.logspace(np.log10(20/0.001), np.log10(20/0.000001))
+    ns = np.linspace(0.2, 0.8)
+    hs = [1, 2, 4]
+    tips = np.zeros((len(kas), len(cs), len(hs)))
+    gammas = np.zeros((len(kas), len(ns)))
+    for i in range(len(kas)):
+        for j in range(len(cs)):
+                for k in range(len(hs)):
+                    sc1 = SemiCoastHead(k=kas[i], H=20, c=cs[j], h=hs[k], x=-2000, rhof=1000, rhos=1025, Ls=30000, ztop=-35, sealevel=0)
+                    tips[i, j, k] =sc1.toe()
+                    # sc1.plot()
+        for j in range(len(ns)):
+            gammas[i, j] = Gamma(kas[i], ns[j])
+    f, axs = plt.subplots(1, 2, figsize = (8, 3.5), layout="tight")
+    for i in range(1):
+        CS = axs[i].contour(kas, 20/cs, tips[:, :, i].T/1000, colors="black", levels=np.linspace(0, 30, 7))
 
-axs[0].set_box_aspect(1)
-axs[0].set_xscale("log")
-axs[0].set_yscale("log")
-axs[0].set_ylabel(r"$K_b^V$ [m/day]")
-axs[0].set_xlabel(r"$K_a$ [m/day]")
+    axs[0].set_box_aspect(1)
+    axs[0].set_xscale("log")
+    axs[0].set_yscale("log")
+    axs[0].set_ylabel(r"$K_b^V$ [m/day]")
+    axs[0].set_xlabel(r"$K_a$ [m/day]")
 
-axs[0].clabel(CS, fontsize=9, colors="black", inline=True)
-CS2 = axs[1].contour(kas, ns, gammas.T, levels=np.logspace(np.log10(0.01), np.log10(10), 4), colors="black")
-axs[1].set_box_aspect(1)
-axs[1].set_xscale("log")
-axs[1].clabel(CS2, fontsize=9, colors="black", inline=True, fmt=fmt)
-axs[1].set_xlabel(r"$K_a$ [m/day]")
-axs[1].set_ylabel(r"$n$ [-]")
-axs[0].set_title(r"$x_{tip}^{modern}$ [km]")
-axs[1].set_title(r"$\Gamma_a$ [-]")
+    axs[0].clabel(CS, fontsize=9, colors="black", inline=True)
+    CS2 = axs[1].contour(kas, ns, gammas.T, levels=np.logspace(np.log10(0.01), np.log10(10), 4), colors="black")
+    axs[1].set_box_aspect(1)
+    axs[1].set_xscale("log")
+    axs[1].clabel(CS2, fontsize=9, colors="black", inline=True, fmt=fmt)
+    axs[1].set_xlabel(r"$K_a$ [m/day]")
+    axs[1].set_ylabel(r"$n$ [-]")
+    axs[0].set_title(r"$x_T^{modern}$ [km]")
+    axs[1].set_title(r"$\Gamma_a$ [-]")
 
 
-plt.show()
+    plt.show()
+
+# def plot_obj2():
 ## Case 2
 #sc2 = SemiCoast(k=10, H=10, c=100, grad=0.00375, rhof=1000, rhos=1025, Ls=1000)
 ## Case 3
@@ -405,3 +408,6 @@ plt.show()
 #sc4 = SemiCoast(k=10, H=10, c=100, grad=0.00375, rhof=1000, rhos=1025, Ls=150)
 #
 #sch = SemiCoastHead(k=10, H=10, c=100, x=-1000, h=0.25, rhof=1000, rhos=1025, Ls=inf, ztop=0, sealevel=0)
+sc1 = SemiCoastHead(k=40, H=20, c=20/0.000001, h=0.75, x=-400, rhof=1000, rhos=1025, Ls=4000, ztop=-20, sealevel=0)
+                    # tips[i, j, k] =sc1.toe()
+sc1.plot() 
