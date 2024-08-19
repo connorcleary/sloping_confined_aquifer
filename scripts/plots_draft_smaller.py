@@ -59,7 +59,7 @@ def back_dispersion(qz, pars, pars2):
 #     # axs[0].plot(x, rv)
 #     axs[0].plot(x, rh)
 #     axs[0].set_yscale("log")
-#     plt.savefig(f"/home/superuser/sloping_confined_aquifer/results/base30/{Ka}_{KbV}_{h_modern}_post.png", dpi=600)
+#     plt.savefig(f"/home/superuser/sloping_confined_aquifer/results/base10/{Ka}_{KbV}_{h_modern}_post.png", dpi=600)
 
 
 def plot_predev_bases():
@@ -78,7 +78,7 @@ def plot_predev_bases():
     #         try:
     #             f, axs = plt.subplots(1, 2, figsize=(4, 6), layout="constrained", sharex=True, sharey=True)
     #             name=f"{Ka}_{KbV}_{h_modern}"
-    ensemble_name="base30"            
+    ensemble_name="base10"
     Kas = [100, 10, 1]
     KbVs = [1e-3, 1e-4, 1e-5]
     alphas = [1, 10, 100]
@@ -135,7 +135,7 @@ def plot_results_1():
     #         try:
     #             f, axs = plt.subplots(1, 2, figsize=(4, 6), layout="constrained", sharex=True, sharey=True)
     #             name=f"{Ka}_{KbV}_{h_modern}"
-    ensemble_name="base30"            
+    ensemble_name="base10"
     Kas = [1, 10, 100]
     KbVs = [1e-5, 1e-4, 1e-3]
     # alphas = [1, 10, 100]
@@ -189,7 +189,7 @@ def plot_results_1():
     plt.show()    
 
 def plot_results_2():
-    ensemble_name="base30"            
+    ensemble_name="base10"
     Kas = [1, 10, 100]
     KbVs = [1e-5, 1e-4, 1e-3]
     alphas = [1, 10, 100]
@@ -248,7 +248,7 @@ def plot_results_3():
     #         try:
     #             f, axs = plt.subplots(1, 2, figsize=(4, 6), layout="constrained", sharex=True, sharey=True)
     #             name=f"{Ka}_{KbV}_{h_modern}"
-    ensemble_name="base30"            
+    ensemble_name="base10"
     Kas = [10, 100]
     KbVs = [1e-4]
     x_ranges=[[5,5.25],[3,3.25]]
@@ -294,7 +294,7 @@ def plot_results_3():
     plt.show()
 
 def plot_results_4():
-    ensemble_name="base30"            
+    ensemble_name="base10"
     Kas = [1, 10, 100]
     KbVs = [1e-5, 1e-4, 1e-3]
     alphas = [1, 10, 100]
