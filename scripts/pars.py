@@ -39,7 +39,7 @@ class ModelParameters:
             frequency: frequency of timesteps save for results
     """
     
-    def __init__(self, name="none", L=50000, H=16, D=25, z0=76, offshore_proportion=1, 
+    def __init__(self, name="none", L=10000, H=20, D=20, z0=50, offshore_proportion=1,
             sea_level=0, dx=25, dz=1, x_b=4000, K_aquifer=300, K_aquitard=0.01, anis_aquifer=100, anis_aquitard=100,
                 sy=0.24, Ss=1e-6,
                 n_aquifer=0.3, n_aquitard=0.3, alpha_L=5, alpha_anisT=0.1, alpha_anisV=0.01, 
