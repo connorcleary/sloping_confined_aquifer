@@ -1,1 +1,1 @@
-Code to model sloping confined coastal aquifers. Models the emplacement and salinization of OFG. This repository contains scripts used to generate results for a manuscript has been submitted for publication.
+Code to model sloping confined coastal aquifers. Models the emplacement and salinization of OFG. This repository contains scripts used to generate results for a manuscript that has been submitted for publication.
